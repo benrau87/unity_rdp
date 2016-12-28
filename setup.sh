@@ -51,3 +51,34 @@ fi
 export DEBIAN_FRONTEND=noninteractive
 
 ##Begin scripting
+print_status "Updating and installing packages"
+apt-get update -y &>> $logfile
+error_check 'Updated'
+apt-get upgrade -y &>> $logfile
+error_check 'Upgraded'
+apt-get autoclean -y &>> $logfile
+error_check 'Cleaned'
+
+print_status "Downloading TigerVNC"
+wget https://bintray.com/tigervnc/stable/download_file?file_path=tigervnc-Linux-x86_64-1.6.0.tar.gz &>> $logfile
+error_check 'Tiger Download'
+print_status "Installing TigerVNC"
+dpkg -i tigervncserver_1.6.80-4_amd64.deb &>> $logfile
+apt-get install -f &>> $logfile
+error_check 'Tiger Install'
+
+print_status "Installing xrdp"
+apt-get install xrdp -y &>> $logfile
+error_check 'XRDP Install'
+
+echo unity>~/.xsession
+
+# Set keyboard layout in xrdp sessions 
+cd /etc/xrdp 
+test=$(setxkbmap -query | awk -F":" '/layout/ {print $2}') 
+echo "your current keyboard layout is.." $test
+setxkbmap -layout $test 
+sudo cp /etc/xrdp/km-0409.ini /etc/xrdp/km-0409.ini.bak 
+sudo xrdp-genkeymap km-0409.ini
+
+print_status "Finished"
